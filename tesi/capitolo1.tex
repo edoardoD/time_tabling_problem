@@ -1,0 +1,57 @@
+\chapter{Il Problema dell'HSTP e il Modello di Colorazione di Grafi}
+\label{chap:capitolo1}
+
+\section{Definizione formale del High School Timetabling Problem (HSTP)}
+\label{sec:definizione_formalizzazione_hstp}
+% Linee guida:
+% - Formalizzazione degli insiemi fondamentali del sistema: Docenti (D), Classi (C), Risorse Ambientali/Aule (A), Slot Temporali (T).
+% - Definizione dello spazio delle soluzioni e delle variabili decisionali booleane x_{d,c,a,t} \in {0,1}.
+
+Definiamo gli insiemi fondamentali del sistema:
+\begin{itemize}
+    \item Insieme dei Docenti: $D = \{d_1, d_2, \dots, d_{|D|}\}$
+    \item Insieme delle Classi: $C = \{c_1, c_2, \dots, c_{|C|}\}$
+    \item Insieme delle Aule/Laboratori: $A = \{a_1, a_2, \dots, a_{|A|}\}$
+    \item Insieme degli Slot Temporali: $T = \{t_1, t_2, \dots, t_{|T|}\}$
+\end{itemize}
+
+Lo spazio delle soluzioni può essere modellato mediante variabili decisionali booleane:
+\[
+x_{d,c,a,t} = \begin{cases} 
+1 & \text{se il docente } d \text{ insegna alla classe } c \text{ nell'aula } a \text{ nello slot } t \\
+0 & \text{altrimenti}
+\end{cases}
+\]
+dove $d \in D$, $c \in C$, $a \in A$, $t \in T$.
+
+\section{Astrazione del problema: Riduzione al Graph Coloring Problem (GCP)}
+\label{sec:astrazione_gcp}
+
+\subsection{Costruzione del Grafo di Conflitto $G = (V, E)$}
+\label{subsec:grafo_conflitto}
+% Linee guida: Definizione dell'insieme dei nodi V come tuple di eventi elementari (lezione/ora d'insegnamento) e dell'insieme degli archi E come relazioni di mutua esclusione temporale.
+
+Definiamo il grafo di conflitto $G = (V, E)$, dove:
+\begin{itemize}
+    \item L'insieme dei nodi $V$ rappresenta gli eventi elementari (es. singola ora di lezione o incontro didattico docente-classe).
+    \item L'insieme degli archi $E$ rappresenta i conflitti (archi tra nodi che non possono essere programmati contemporaneamente, ad esempio perché condividono lo stesso docente o la stessa classe).
+\end{itemize}
+
+\subsection{Mappatura degli slot temporali}
+\label{subsec:mappatura_colori}
+% Linee guida: Associazione biunivoca tra il set di colori disponibili K (dove |K| = |T|) e la partizione oraria settimanale.
+
+Sia $K$ l'insieme dei colori disponibili. Associamo in modo biunivoco ogni colore $k \in K$ a uno slot temporale $t \in T$, con la condizione che $|K| = |T|$. Il problema di scheduling si riduce alla ricerca di una colorazione ammissibile dei nodi di $G$.
+
+\subsection{Estensioni del modello standard}
+\label{subsec:estensioni_modello}
+% Linee guida: Limiti della colorazione classica dei nodi e introduzione dei paradigmi di List Coloring e ipergrafi per la gestione di vincoli multi-risorsa.
+
+% Discuti qui i limiti del GCP classico (es. impossibilità di gestire facilmente aule multiple, partizioni o vincoli specifici)
+% e introduci i paradigmi di List Coloring e la modellazione tramite ipergrafi.
+
+\section{Analisi della complessità computazionale}
+\label{sec:complessita_computazionale}
+% Linee guida:
+% - Dimostrazione della natura NP-hard del problema tramite riduzione polinomiale dal problema di colorazione di un grafo a k-colori.
+% - Trattazione dell'esplosione combinatoria dello spazio degli stati: impossibilità teorica e pratica di approcci esaustivi (Brute-Force) su istanze reali.

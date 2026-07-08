@@ -1,0 +1,34 @@
+\chapter{Paradigmi Algoritmici di Risoluzione per l'HSTP}
+\label{chap:capitolo3}
+
+In questo capitolo vengono esaminati i principali paradigmi algoritmici utilizzati in letteratura e nella pratica ingegneristica per risolvere il problema dell'High School Timetabling Problem (HSTP).
+
+\section{Metodi Esatti: Programmazione Lineare Intera (ILP) e SAT-Solving}
+\label{sec:metodi_esatti}
+% Linee guida:
+% - Formulazione del problema tramite rilassamento lineare e algoritmi di Branch and Bound / Branch and Cut.
+% - Valutazione dei limiti di scalabilità dei solver esatti (es. Gurobi, CPLEX) a fronte di matrici di vincoli ad alta densità.
+
+\section{Constraint Programming (CP)}
+\label{sec:constraint_programming}
+% Linee guida:
+% - Il paradigma di soddisfacimento di vincoli (CSP) applicato al dominio delle lezioni.
+% - Tecniche di consistenza locale (Arc Consistency) e algoritmi di propagazione dei vincoli (es. vincolo globale Alldifferent).
+
+\section{Metaeuristiche basate su Traiettoria (Ricerca Locale)}
+\label{sec:metaeuristiche_traiettoria}
+
+\subsection{Tabu Search (TS)}
+\label{subsec:tabu_search}
+% Linee guida: Struttura della memoria a breve termine (Tabu List), funzioni di aspirazione e definizione delle mosse nell'intorno d'orario (scambio di slot o aule).
+
+\subsection{Simulated Annealing (SA)}
+\label{subsec:simulated_annealing}
+% Linee guida: Algoritmo di raffreddamento termodinamico stocastico e criteri di accettazione di soluzioni peggiorative per l'evitamento di ottimi locali.
+
+\section{Metaeuristiche Evolutive (Algoritmi Genetici - GA)}
+\label{sec:algoritmi_genetici}
+% Linee guida:
+% - Codifica del cromosoma (rappresentazione matriciale D x T vs stringhe di assegnamento).
+% - Funzione di Fitness basata sulla minimizzazione delle penalità matematiche del Capitolo 2.
+% - Operatori genetici specializzati: Order Crossover (OX) e mutazioni per inversione volti a preservare l'ammissibilità dell'orario.

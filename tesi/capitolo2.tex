@@ -1,0 +1,86 @@
+\chapter{Traduzione Formale e Matematicizzazione dei Vincoli d'Istituto (A.S. 2026/2027)}
+\label{chap:capitolo2}
+
+In questo capitolo viene presentata la formulazione matematica rigorosa dei vincoli che governano l'orario scolastico dell'Istituto Tecnico Saffi-Alberti di Forlì per l'anno scolastico 2026/2027.
+
+\section{Formalizzazione degli Hard Constraints (Vincoli di Ammissibilità Strutturale)}
+\label{sec:hard_constraints}
+
+I vincoli rigidi (hard constraints) devono essere necessariamente soddisfatti affinché l'orario sia considerato valido (ammissibile).
+
+\subsection{Vincoli di unicità ed esclusione}
+\label{subsec:unicita_esclusione}
+% Linee guida: Formulazione matematica delle equazioni di non-sovrapposizione per docenti e classi.
+
+Ogni docente e ogni classe non possono svolgere più di una lezione contemporaneamente in un dato slot temporale.
+
+\begin{equation}
+\sum_{c \in C} \sum_{a \in A} x_{d,c,a,t} \le 1 \quad \forall d \in D, \forall t \in T
+\end{equation}
+
+\begin{equation}
+\sum_{d \in D} \sum_{a \in A} x_{d,c,a,t} \le 1 \quad \forall c \in C, \forall t \in T
+\end{equation}
+
+\subsection{Limitazione delle risorse fisiche}
+\label{subsec:limitazione_risorse_fisiche}
+% Linee guida: Equazioni di capacità per l'uso condiviso di laboratori, spazi comuni e palestre, e per l'allocazione delle aule speciali.
+
+Un'aula (o laboratorio/palestra) $a \in A$ non può ospitare più di una classe (o un evento di lezione) contemporaneamente nello slot temporale $t \in T$.
+
+\begin{equation}
+\sum_{d \in D} \sum_{c \in C} x_{d,c,a,t} \le 1 \quad \forall a \in A, \forall t \in T
+\end{equation}
+
+\subsection{Sincronizzazione delle compresenze}
+\label{subsec:compresenze}
+% Linee guida: Modellazione logica della contemporaneità forzata tra nodi del grafo.
+
+% Inserisci qui la formulazione matematica per le compresenze di docenti (es. attività di laboratorio con docente teorico e assistente tecnico).
+
+\subsection{Condizioni al contorno esterne}
+\label{subsec:condizioni_contorno_esterne}
+% Linee guida: Finestre di indisponibilità determinate dagli orari di funzionamento della struttura, dai trasporti locali e dalla presenza di docenti condivisi su più scuole.
+
+\begin{equation}
+x_{d,c,a,t} = 0 \quad \forall (d,c,a,t) \text{ tali che lo slot } t \text{ rientra nell'indisponibilità}
+\end{equation}
+
+\section{Formalizzazione dei Soft Constraints e Costruzione della Funzione Obiettivo}
+\label{sec:soft_constraints}
+
+I vincoli morbidi (soft constraints) descrivono preferenze e criteri di qualità didattica e organizzativa. L'obiettivo è minimizzare le violazioni complessive.
+
+\subsection{Funzione di costo complessiva}
+\label{subsec:funzione_costo}
+% Linee guida: Definizione della funzione di penalità totale come combinazione lineare pesata dei vincoli violati.
+
+Definiamo $P_i(x)$ come la funzione che misura la violazione del vincolo soft $i$-esimo, e $w_i \ge 0$ il peso associato a tale vincolo. La funzione obiettivo complessiva è espressa come:
+
+\begin{equation}
+\min z = \sum_{i} w_i \cdot P_i(x)
+\end{equation}
+
+\subsection{Densità didattica ed equilibrata ripartizione}
+\label{subsec:densita_didattica}
+% Linee guida: Modellazione della distribuzione settimanale delle discipline tra teoria, laboratorio e attività operative.
+
+\subsection{Vincoli di sbarramento di adiacenza}
+\label{subsec:sbarramento_adiacenza}
+% Linee guida: Formalizzazione logica del divieto di duplicazione giornaliera delle materie da due ore settimanali (escluse Scienze Motorie).
+
+\subsection{Equità del carico di lavoro docente}
+\label{subsec:equita_carico_docente}
+% Linee guida: Minimizzazione della varianza dei profili orari individuali rispetto alle ore iniziali, centrali e finali della giornata.
+
+\subsection{Vincoli di contiguità e comfort}
+\label{subsec:contiguita_comfort}
+% Linee guida: Limitazione a un massimo di 5 ore consecutive giornaliere e penalizzazione delle ore "buche" settimanali oltre la soglia critica di 3 ore per docente.
+
+\subsection{Logistica multi-plesso e partizione temporale}
+\label{subsec:logistica_multi_plesso}
+% Linee guida: Inserimento della variabile di latenza per il trasferimento fisico tra scuole (t_travel) e vincolo di estensione dell'orario su almeno 5 giorni.
+
+\subsection{Rilassamento dei vincoli e priorità}
+\label{subsec:rilassamento_vincoli_priorita}
+% Linee guida: Modulazione dei pesi w_i per la rinuncia al giorno libero in caso di ore eccedenti e per la sottomissione delle richieste individuali rispetto alle priorità sistemiche.

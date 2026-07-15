@@ -1,86 +1,84 @@
-\chapter{Traduzione Formale e Matematicizzazione dei Vincoli d'Istituto (A.S. 2026/2027)}
+\chapter{Stato dell'Arte degli Algoritmi di Risoluzione}
 \label{chap:capitolo2}
 
-In questo capitolo viene presentata la formulazione matematica rigorosa dei vincoli che governano l'orario scolastico dell'Istituto Tecnico Saffi-Alberti di Forlì per l'anno scolastico 2026/2027.
+La risoluzione dell'High School Timetabling Problem (HSTP) ha visto lo sviluppo di molteplici paradigmi algoritmici in letteratura. A causa della natura NP-hard del problema, la ricerca si è mossa dallo studio di metodi esatti, capaci di garantire la determinazione dell'ottimo globale a scapito di tempi di calcolo elevati, verso l'adozione di approcci euristici e metaeuristici. Questo capitolo analizza lo stato dell'arte dei modelli di risoluzione, classificandoli tra approcci esatti, Constraint Programming, metaeuristiche basate su traiettoria e di tipo evolutivo, fino a giungere ai moderni paradigmi ibridi noti come matheuristics.
 
-\section{Formalizzazione degli Hard Constraints (Vincoli di Ammissibilità Strutturale)}
-\label{sec:hard_constraints}
+\section{Approcci esatti vs. Approcci euristici}
+\label{sec:approcci_esatti_euristici}
 
-I vincoli rigidi (hard constraints) devono essere necessariamente soddisfatti affinché l'orario sia considerato valido (ammissibile).
+I metodi di risoluzione per l'HSTP possono essere suddivisi in due macro-categorie fondamentali: gli approcci esatti e gli approcci euristici.
 
-\subsection{Vincoli di unicità ed esclusione}
-\label{subsec:unicita_esclusione}
-% Linee guida: Formulazione matematica delle equazioni di non-sovrapposizione per docenti e classi.
+I \textbf{metodi esatti} mirano a esplorare lo spazio delle soluzioni in modo esaustivo o implicitamente controllato per garantire la convergenza verso la soluzione matematicamente ottima. La Programmazione Lineare Intera (Integer Linear Programming, ILP) e i solutori di soddisfacibilità booleana (SAT-solving) rappresentano le colonne portanti di questa categoria. In un modello ILP, l'orario scolastico è descritto da un insieme di variabili intere o binarie soggette a vincoli lineari di uguaglianza o diseguaglianza. Algoritmi classici quali il Branch and Bound e il Branch and Cut consentono di risolvere tali modelli rilassando inizialmente i vincoli di integrità ed effettuando successivamente partizioni dello spazio di ricerca.
+Tuttavia, i metodi esatti presentano pesanti limiti di scalabilità. Al crescere del numero di risorse (classi, docenti, aule) e della densità dei vincoli, il tempo richiesto per trovare l'ottimo o anche solo per determinare una soluzione ammissibile cresce in modo esponenziale. Per istanze scolastiche reali complesse, i solutori commerciali (come Gurobi o CPLEX) possono richiedere ore o giorni di calcolo, rendendoli spesso inadatti per un uso operativo interattivo.
 
-Ogni docente e ogni classe non possono svolgere più di una lezione contemporaneamente in un dato slot temporale.
+I \textbf{metodi euristici}, al contrario, rinunciano alla garanzia di ottimalità per focalizzarsi sulla ricerca di soluzioni di buona qualità in tempi computazionali ridotti. Essi si basano su regole empiriche o logiche di instradamento per costruire l'orario in modo incrementale (euristiche costruttive) o per migliorare una soluzione iniziale tramite modifiche locali (euristiche di miglioramento). Sebbene non garantiscano il raggiungimento del minimo globale della funzione di costo, le euristiche consentono di ottenere orari ammissibili e stabili in pochi secondi o minuti, rispondendo in modo flessibile alle esigenze delle segreterie scolastiche.
 
-\begin{equation}
-\sum_{c \in C} \sum_{a \in A} x_{d,c,a,t} \le 1 \quad \forall d \in D, \forall t \in T
-\end{equation}
+\section{Constraint Programming (CP)}
+\label{sec:constraint_programming_cap2}
 
-\begin{equation}
-\sum_{d \in D} \sum_{a \in A} x_{d,c,a,t} \le 1 \quad \forall c \in C, \forall t \in T
-\end{equation}
+La Programmazione a Vincoli (Constraint Programming, CP) rappresenta un paradigma dichiarativo particolarmente efficace per la modellazione e la risoluzione di problemi di soddisfacimento di vincoli (Constraint Satisfaction Problem, CSP). A differenza della programmazione matematica classica, che richiede la linearizzazione di ogni relazione, la CP consente di esprimere vincoli complessi e non lineari in modo diretto.
 
-\subsection{Limitazione delle risorse fisiche}
-\label{subsec:limitazione_risorse_fisiche}
-% Linee guida: Equazioni di capacità per l'uso condiviso di laboratori, spazi comuni e palestre, e per l'allocazione delle aule speciali.
+Il nucleo di un solutore CP si basa su due concetti chiave:
+\begin{itemize}
+    \item \textbf{Propagazione dei Vincoli}: ogni volta che viene effettuata una scelta decisionale su una variabile (ad esempio, assegnando un docente a un dato slot orario), il solutore propaga l'effetto di tale scelta su tutte le altre variabili adiacenti, riducendone i rispettivi domini di ammissibilità. Tecniche di consistenza locale, come l'Arc Consistency (AC), consentono di eliminare preventivamente dallo spazio di ricerca i valori che non possono far parte di alcuna soluzione ammissibile.
+    \item \textbf{Global Constraints}: la CP introduce vincoli globali specializzati che racchiudono relazioni ricorrenti tra sottoinsiemi di variabili. Un esempio fondamentale per lo scheduling è il vincolo \texttt{Alldifferent}, che impone che un insieme di variabili assuma valori mutuamente distinti (ad esempio, per garantire che una classe non abbia lezioni sovrapposte nello stesso slot). I solutori integrano algoritmi dedicati per la propagazione efficiente di questi vincoli globali.
+\end{itemize}
 
-Un'aula (o laboratorio/palestra) $a \in A$ non può ospitare più di una classe (o un evento di lezione) contemporaneamente nello slot temporale $t \in T$.
+Nelle applicazioni reali, la CP viene spesso utilizzata come fase costruttiva preliminare per individuare rapidamente una soluzione iniziale che soddisfi tutti i vincoli rigidi (hard), da sottoporre poi a ottimizzazione.
 
-\begin{equation}
-\sum_{d \in D} \sum_{c \in C} x_{d,c,a,t} \le 1 \quad \forall a \in A, \forall t \in T
-\end{equation}
+\section{Il ruolo delle Meta-euristiche}
+\label{sec:ruolo_metaeuristiche}
 
-\subsection{Sincronizzazione delle compresenze}
-\label{subsec:compresenze}
-% Linee guida: Modellazione logica della contemporaneità forzata tra nodi del grafo.
+Le meta-euristiche sono framework algoritmici generali progettati per guidare euristiche di ricerca locale oltre gli ottimi locali, esplorando lo spazio delle soluzioni in modo intelligente. L'efficacia delle meta-euristiche applicate allo scheduling scolastico è stata ampiamente documentata a partire dal lavoro seminale di Colorni, Dorigo e Maniezzo (1998) \cite{colorni1998metaheuristics}, che ha confrontato l'impiego di diversi paradigmi su casi reali di scuole secondarie italiane.
 
-% Inserisci qui la formulazione matematica per le compresenze di docenti (es. attività di laboratorio con docente teorico e assistente tecnico).
+Le principali meta-euristiche utilizzate per l'HSTP si dividono in metodi basati su traiettoria e metodi basati su popolazione.
 
-\subsection{Condizioni al contorno esterne}
-\label{subsec:condizioni_contorno_esterne}
-% Linee guida: Finestre di indisponibilità determinate dagli orari di funzionamento della struttura, dai trasporti locali e dalla presenza di docenti condivisi su più scuole.
+\subsection{Meta-euristiche basate su Traiettoria}
+\label{subsec:metaeuristiche_traiettoria_cap2}
 
-\begin{equation}
-x_{d,c,a,t} = 0 \quad \forall (d,c,a,t) \text{ tali che lo slot } t \text{ rientra nell'indisponibilità}
-\end{equation}
+Questi algoritmi operano su una singola soluzione di partenza, spostandosi attraverso lo spazio di ricerca tramite una traiettoria definita da mosse di vicinato (ad esempio, scambiando gli slot temporali di due lezioni o riallocando un'aula).
 
-\section{Formalizzazione dei Soft Constraints e Costruzione della Funzione Obiettivo}
-\label{sec:soft_constraints}
+\begin{itemize}
+    \item \textbf{Tabu Search (TS)}: per evitare di rimanere intrappolati in ottimi locali o di ripercorrere ciclicamente le stesse soluzioni, la Tabu Search utilizza una struttura di memoria a breve termine chiamata \textit{Tabu List}. Questa lista memorizza le mosse effettuate di recente, vietando temporaneamente la loro esecuzione (stato di "tabu"). È possibile derogare a tale divieto solo se la mossa consente di ottenere una soluzione che migliora il miglior risultato storico (criterio di aspirazione). La definizione accurata del vicinato (neighborhood search operators) è cruciale per l'efficacia del metodo.
+    \item \textbf{Simulated Annealing (SA)}: ispirato al processo termodinamico di raffreddamento controllato dei metalli (ricottura), il Simulated Annealing introduce una componente stocastica nella ricerca locale. Ad ogni iterazione, l'algoritmo valuta una mossa nel vicinato: le mosse migliorative vengono sempre accettate, mentre le mosse peggiorative vengono accettate con una probabilità variabile dipendente da un parametro di "temperatura" $T$. All'inizio della ricerca la temperatura è elevata, consentendo ampie deviazioni per esplorare lo spazio degli stati; man mano che il processo avanza, la temperatura viene gradualmente ridotta (cooling schedule), focalizzando la ricerca sul raffinamento locale delle soluzioni trovate.
+\end{itemize}
 
-I vincoli morbidi (soft constraints) descrivono preferenze e criteri di qualità didattica e organizzativa. L'obiettivo è minimizzare le violazioni complessive.
+\subsection{Meta-euristiche Evolutive: Algoritmi Genetici}
+\label{subsec:metaeuristiche_evolutive_cap2}
 
-\subsection{Funzione di costo complessiva}
-\label{subsec:funzione_costo}
-% Linee guida: Definizione della funzione di penalità totale come combinazione lineare pesata dei vincoli violati.
+Gli Algoritmi Genetici (Genetic Algorithms, GA) si ispirano ai meccanismi della selezione naturale e della genetica biologica. Operano su una popolazione di soluzioni (chiamate cromosomi o individui) che evolvono nel corso delle generazioni.
+La struttura logica di un GA per l'HSTP comprende:
+\begin{enumerate}
+    \item \textbf{Codifica del Cromosoma}: gli individui possono essere rappresentati tramite stringhe di assegnamento o matrici bidimensionali Docenti $\times$ Slot Temporali, in cui ciascuna cella indica la classe e l'aula assegnate.
+    \item \textbf{Valutazione della Fitness}: ogni cromosoma è valutato mediante una funzione di fitness, che corrisponde all'inverso della funzione obiettivo definita nell'equazione (\ref{eq:funzione_costo_generale}). Minori sono le violazioni dei vincoli (soprattutto soft), maggiore è il valore di fitness e la probabilità di sopravvivenza dell'individuo.
+    \item \textbf{Operatori Genetici}: il crossover (ricombinazione) unisce porzioni di due soluzioni genitore per generare una nuova prole (es. Order Crossover, OX, volto a preservare l'ammissibilità dell'assegnamento delle ore). La mutazione introduce piccole variazioni casuali per mantenere la diversità genetica della popolazione ed evitare la convergenza prematura.
+\end{enumerate}
 
-Definiamo $P_i(x)$ come la funzione che misura la violazione del vincolo soft $i$-esimo, e $w_i \ge 0$ il peso associato a tale vincolo. La funzione obiettivo complessiva è espressa come:
+Come evidenziato da Colorni et al. \cite{colorni1998metaheuristics}, l'ibridazione degli algoritmi genetici con operatori di ricerca locale (dando origine a algoritmi memetici) consente di unire la capacità di esplorazione globale dei GA con l'efficacia di raffinamento locale dei metodi a traiettoria, surclassando spesso le prestazioni delle tecniche applicate singolarmente.
 
-\begin{equation}
-\min z = \sum_{i} w_i \cdot P_i(x)
-\end{equation}
+\section{Modelli ibridi: l'approccio delle Matheuristics}
+\label{sec:matheuristics}
 
-\subsection{Densità didattica ed equilibrata ripartizione}
-\label{subsec:densita_didattica}
-% Linee guida: Modellazione della distribuzione settimanale delle discipline tra teoria, laboratorio e attività operative.
+Un filone di ricerca recente e di elevato interesse scientifico è rappresentato dalle \textbf{Matheuristics} \cite{maniezzo2021matheuristics}, definite come algoritmi di ottimizzazione ibridi risultanti dalla combinazione di tecniche metaeuristiche e modelli di programmazione matematica. L'obiettivo fondamentale è sfruttare le capacità di modellazione formale e la potenza risolutiva dei solutori esatti all'interno di un framework euristico flessibile.
 
-\subsection{Vincoli di sbarramento di adiacenza}
-\label{subsec:sbarramento_adiacenza}
-% Linee guida: Formalizzazione logica del divieto di duplicazione giornaliera delle materie da due ore settimanali (escluse Scienze Motorie).
+Il volume di Maniezzo, Boschetti e Stützle (2021) \cite{maniezzo2021matheuristics} illustra diverse modalità di integrazione e progettazione di algoritmi matheuristici, classificabili principalmente nelle seguenti metodologie:
 
-\subsection{Equità del carico di lavoro docente}
-\label{subsec:equita_carico_docente}
-% Linee guida: Minimizzazione della varianza dei profili orari individuali rispetto alle ore iniziali, centrali e finali della giornata.
+\subsection{Euristiche basate su Decomposizione}
+\label{subsec:decomposizione_math}
 
-\subsection{Vincoli di contiguità e comfort}
-\label{subsec:contiguita_comfort}
-% Linee guida: Limitazione a un massimo di 5 ore consecutive giornaliere e penalizzazione delle ore "buche" settimanali oltre la soglia critica di 3 ore per docente.
+Seguendo il principio del \textit{divide et impera}, un problema di ottimizzazione di grandi dimensioni viene scomposto in sotto-problemi più piccoli e trattabili, che possono essere risolti all'ottimo tramite solutori esatti. Le soluzioni dei sotto-problemi vengono poi ricomposte ricorsivamente. Esempi classici includono:
+\begin{itemize}
+    \item \textbf{Decomposizione di Dantzig-Wolfe}: adatta a problemi con struttura a blocchi angolari, separa i vincoli in vincoli di coordinamento globale e vincoli locali dei sotto-problemi.
+    \item \textbf{Rilassamento e Decomposizione Lagrangiana}: consiste nel rilassare i vincoli difficili del problema trasferendoli nella funzione obiettivo sotto forma di penalità pesate mediante i moltiplicatori di Lagrange, decomponendo il problema rimanente in parti indipendenti risolvibili all'ottimo.
+    \item \textbf{Decomposizione di Benders}: adatta a problemi con variabili di partizionamento, separa le variabili decisionali in due gruppi (ad esempio, pre-assegnando i docenti alle classi in una fase, e determinando lo scheduling temporale in un'altra).
+\end{itemize}
 
-\subsection{Logistica multi-plesso e partizione temporale}
-\label{subsec:logistica_multi_plesso}
-% Linee guida: Inserimento della variabile di latenza per il trasferimento fisico tra scuole (t_travel) e vincolo di estensione dell'orario su almeno 5 giorni.
+\subsection{Corridor Method}
+\label{subsec:corridor_method}
 
-\subsection{Rilassamento dei vincoli e priorità}
-\label{subsec:rilassamento_vincoli_priorita}
-% Linee guida: Modulazione dei pesi w_i per la rinuncia al giorno libero in caso di ore eccedenti e per la sottomissione delle richieste individuali rispetto alle priorità sistemiche.
+Il Corridor Method (CM) \cite{maniezzo2021matheuristics} è una metodologia che utilizza un solutore esatto (come un solutore MILP) per esplorare in modo esaustivo porzioni limitate dello spazio delle soluzioni (intorni locali). La restrizione dello spazio di ricerca viene ottenuta introducendo vincoli esogeni temporanei ("corridoi") attorno a una soluzione corrente di buona qualità. Il solutore esatto ricerca la soluzione migliore all'interno di questo corridoio stretto in tempi ridotti; una volta trovata, il corridoio viene spostato attorno al nuovo punto e il processo viene ripetuto fino a convergenza.
+
+\subsection{Kernel Search}
+\label{subsec:kernel_search}
+
+La Kernel Search (KS) \cite{maniezzo2021matheuristics} è un approccio euristico progettato per problemi MILP basato sull'identificazione di un sottoinsieme promettente di variabili decisionali, chiamato \textit{kernel} (nucleo). La selezione iniziale del kernel può avvenire risolvendo il rilassamento lineare del problema. Le variabili rimanenti vengono suddivise in partizioni (secchi o \textit{buckets}). L'algoritmo procede risolvendo in modo sequenziale una serie di problemi MILP di dimensioni ridotte, aggiungendo un bucket alla volta al kernel corrente e selezionando le variabili che mostrano un impatto positivo sul miglioramento della funzione obiettivo, aggiornando dinamicamente la composizione del nucleo.

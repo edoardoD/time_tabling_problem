@@ -1,57 +1,103 @@
-\chapter{Il Problema dell'HSTP e il Modello di Colorazione di Grafi}
+\chapter{Il Problema dell'HSTP e la sua Modellazione Matematica}
 \label{chap:capitolo1}
 
-\section{Definizione formale del High School Timetabling Problem (HSTP)}
-\label{sec:definizione_formalizzazione_hstp}
-% Linee guida:
-% - Formalizzazione degli insiemi fondamentali del sistema: Docenti (D), Classi (C), Risorse Ambientali/Aule (A), Slot Temporali (T).
-% - Definizione dello spazio delle soluzioni e delle variabili decisionali booleane x_{d,c,a,t} \in {0,1}.
+L'organizzazione delle attività didattiche all'interno delle istituzioni scolastiche di secondo grado è un problema di complessa risoluzione dal punto di vista logistico e gestionale. L'High School Timetabling Problem (HSTP) \cite{colorni1998metaheuristics} consiste nella pianificazione temporale e spaziale delle lezioni, associando a ciascun evento didattico un docente, una classe di studenti, un'aula o laboratorio e uno specifico slot temporale. Questo capitolo introduce la formalizzazione matematica dell'HSTP, ne analizza la complessità computazionale alla luce della teoria della complessità algoritmica e descrive l'astrazione del problema tramite la riduzione al Graph Coloring Problem (GCP), gettando le basi teoriche per la comprensione dei vincoli strutturali e didattici.
 
-Definiamo gli insiemi fondamentali del sistema:
+\section{Definizione formale dell'High School Timetabling Problem (HSTP) e complessità}
+\label{sec:definizione_formalizzazione_hstp}
+
+Per definire formalmente il problema dell'HSTP, è necessario introdurre gli insiemi discreti che caratterizzano le risorse del sistema scolastico:
 \begin{itemize}
-    \item Insieme dei Docenti: $D = \{d_1, d_2, \dots, d_{|D|}\}$
-    \item Insieme delle Classi: $C = \{c_1, c_2, \dots, c_{|C|}\}$
-    \item Insieme delle Aule/Laboratori: $A = \{a_1, a_2, \dots, a_{|A|}\}$
-    \item Insieme degli Slot Temporali: $T = \{t_1, t_2, \dots, t_{|T|}\}$
+    \item \textbf{Insieme dei Docenti}: $D = \{d_1, d_2, \dots, d_{|D|}\}$, che rappresenta il corpo docente in servizio nell'istituto.
+    \item \textbf{Insieme delle Classi}: $C = \{c_1, c_2, \dots, c_{|C|}\}$, che definisce i gruppi di studenti che seguono un percorso di studi comune.
+    \item \textbf{Insieme delle Aule e dei Laboratori}: $A = \{a_1, a_2, \dots, a_{|A|}\}$, che comprende le risorse fisiche in cui si svolgono le lezioni (distinguendo tra aule generiche e laboratori specialistici o palestre).
+    \item \textbf{Insieme degli Slot Temporali}: $T = \{t_1, t_2, \dots, t_{|T|}\}$, che rappresenta la discretizzazione dell'orario settimanale in ore di lezione (ad esempio, 6 ore al giorno per 5 o 6 giorni a settimana).
 \end{itemize}
 
-Lo spazio delle soluzioni può essere modellato mediante variabili decisionali booleane:
-\[
+Lo spazio delle soluzioni può essere modellato mediante variabili decisionali booleane quadridimensionali:
+\begin{equation}
 x_{d,c,a,t} = \begin{cases} 
 1 & \text{se il docente } d \text{ insegna alla classe } c \text{ nell'aula } a \text{ nello slot } t \\
 0 & \text{altrimenti}
 \end{cases}
-\]
-dove $d \in D$, $c \in C$, $a \in A$, $t \in T$.
+\label{eq:variabili_decisionali}
+\end{equation}
+dove $d \in D$, $c \in C$, $a \in A$ e $t \in T$.
 
-\section{Astrazione del problema: Riduzione al Graph Coloring Problem (GCP)}
+Un orario scolastico completo è un assegnamento di valori $\{0,1\}$ a ciascuna delle $|D| \times |C| \times |A| \times |T|$ variabili decisionali tali da rispettare l'insieme dei vincoli definiti dall'istituzione scolastica.
+
+L'HSTP appartiene alla classe dei problemi di ottimizzazione combinatoria NP-hard. Ciò significa che non sono noti algoritmi in grado di determinare la soluzione ottima in tempo polinomiale rispetto alle dimensioni dell'istanza del problema. L'esplosione combinatoria dello spazio degli stati rende gli approcci esaustivi di tipo Brute-Force del tutto impraticabili su istanze reali. Ad esempio, per un istituto di medie dimensioni con $|D|=100$ docenti, $|C|=50$ classi, $|A|=50$ aule e $|T|=30$ slot temporali, il numero di possibili configurazioni per le sole variabili decisionali è pari a $2^{100 \times 50 \times 50 \times 30} = 2^{7.5 \times 10^6}$, uno spazio di ricerca talmente vasto da richiedere l'adozione di euristiche e metaeuristiche per la ricerca di soluzioni sub-ottime ma ammissibili in tempi computazionali ragionevoli.
+
+\section{Astrazione del problema: il modello standard e la riduzione al Graph Coloring Problem (GCP)}
 \label{sec:astrazione_gcp}
+
+Una delle astrazioni teoriche più efficaci per lo studio dello School Timetabling è la sua riduzione al problema di colorazione di grafi (Graph Coloring Problem, GCP), un modello classico della teoria dei grafi ampiamente investigato nella letteratura scientifica.
 
 \subsection{Costruzione del Grafo di Conflitto $G = (V, E)$}
 \label{subsec:grafo_conflitto}
-% Linee guida: Definizione dell'insieme dei nodi V come tuple di eventi elementari (lezione/ora d'insegnamento) e dell'insieme degli archi E come relazioni di mutua esclusione temporale.
 
-Definiamo il grafo di conflitto $G = (V, E)$, dove:
+Il primo passo per ricondurre l'HSTP al GCP consiste nella costruzione di un grafo di conflitto non orientato $G = (V, E)$, dove:
 \begin{itemize}
-    \item L'insieme dei nodi $V$ rappresenta gli eventi elementari (es. singola ora di lezione o incontro didattico docente-classe).
-    \item L'insieme degli archi $E$ rappresenta i conflitti (archi tra nodi che non possono essere programmati contemporaneamente, ad esempio perché condividono lo stesso docente o la stessa classe).
+    \item L'insieme dei vertici $V = \{v_1, v_2, \dots, v_{|V|}\}$ rappresenta l'insieme degli eventi didattici o delle singole ore di lezione che devono essere programmate. Ciascun nodo $v \in V$ è associato in modo univoco a una tripla o tupla che specifica il docente $d(v) \in D$, la classe $c(v) \in C$ e la tipologia di risorsa o aula richiesta.
+    \item L'insieme degli archi $E$ rappresenta le relazioni di incompatibilità temporale o conflitto tra eventi. Un arco non orientato $(u, v) \in E$ viene inserito tra due nodi $u, v \in V$ se e solo se gli eventi $u$ e $v$ condividono almeno una risorsa comune che non può essere allocata simultaneamente. Formalmente:
+    \begin{equation}
+    (u, v) \in E \iff [d(u) = d(v)] \lor [c(u) = c(v)] \lor [a(u) = a(v) \text{ e la risorsa } a \text{ è esclusiva}]
+    \end{equation}
 \end{itemize}
 
-\subsection{Mappatura degli slot temporali}
+\subsection{Mappatura degli slot temporali come colori}
 \label{subsec:mappatura_colori}
-% Linee guida: Associazione biunivoca tra il set di colori disponibili K (dove |K| = |T|) e la partizione oraria settimanale.
 
-Sia $K$ l'insieme dei colori disponibili. Associamo in modo biunivoco ogni colore $k \in K$ a uno slot temporale $t \in T$, con la condizione che $|K| = |T|$. Il problema di scheduling si riduce alla ricerca di una colorazione ammissibile dei nodi di $G$.
+Sia $K = \{1, 2, \dots, |K|\}$ l'insieme dei colori disponibili per la colorazione dei nodi di $G$. Nel contesto dell'HSTP, l'insieme dei colori $K$ è posto in corrispondenza biunivoca con l'insieme degli slot temporali $T$, imponendo $|K| = |T|$.
+Il problema di determinare un orario ammissibile e privo di sovrapposizioni si riduce quindi a trovare una colorazione ammissibile (proper coloring) dei vertici del grafo $G$, ovvero una funzione di assegnamento dei colori ai nodi $f: V \to K$ tale per cui nodi adiacenti ricevano colori distinti:
+\begin{equation}
+(u, v) \in E \implies f(u) \neq f(v)
+\end{equation}
+
+Se il numero cromatico del grafo $\chi(G)$ (ovvero il numero minimo di colori necessari per colorare $G$ senza conflitti) soddisfa la relazione $\chi(G) \le |T|$, allora esiste almeno un orario teorico privo di conflitti strutturali per le risorse considerate.
 
 \subsection{Estensioni del modello standard}
 \label{subsec:estensioni_modello}
-% Linee guida: Limiti della colorazione classica dei nodi e introduzione dei paradigmi di List Coloring e ipergrafi per la gestione di vincoli multi-risorsa.
 
-% Discuti qui i limiti del GCP classico (es. impossibilità di gestire facilmente aule multiple, partizioni o vincoli specifici)
-% e introduci i paradigmi di List Coloring e la modellazione tramite ipergrafi.
+Sebbene la riduzione al GCP classico fornisca un solido inquadramento teorico, essa presenta notevoli limiti applicativi nel catturare la complessità dei vincoli delle scuole moderne. Tra i principali limiti si annoverano l'impossibilità di gestire la limitazione di aule generiche intercambiabili e l'indisponibilità oraria predefinita delle risorse. Per superare tali limitazioni, la letteratura introduce estensioni del modelo standard:
+\begin{itemize}
+    \item \textbf{List Coloring Problem (LCP)}: a ciascun nodo $v \in V$ è associata una lista di colori ammissibili $L(v) \subseteq K$, che modella le finestre temporali di disponibilità dei docenti o delle classi. La colorazione è ammissibile se $f(v) \in L(v)$ per ogni $v \in V$ e $f(u) \neq f(v)$ per ogni $(u,v) \in E$.
+    \item \textbf{Modellazione tramite Ipergrafi}: per gestire vincoli multi-risorsa complessi (ad esempio, compresenza di più docenti o condivisione di aule speciali), gli archi binari del grafo classico vengono estesi a iperarchi che connettono sottoinsiemi di nodi di cardinalità superiore a due, consentendo una formulazione algebrica più flessibile delle relazioni di mutuo conflitto.
+\end{itemize}
 
-\section{Analisi della complessità computazionale}
-\label{sec:complessita_computazionale}
-% Linee guida:
-% - Dimostrazione della natura NP-hard del problema tramite riduzione polinomiale dal problema di colorazione di un grafo a k-colori.
-% - Trattazione dell'esplosione combinatoria dello spazio degli stati: impossibilità teorica e pratica di approcci esaustivi (Brute-Force) su istanze reali.
+\section{Tassonomia dei vincoli nell'HSTP: Hard Constraints vs Soft Constraints}
+\label{sec:tassonomia_vincoli}
+
+Nello sviluppo di modelli matematici per la risoluzione dell'HSTP, i requisiti e le regole operative che governano la stesura dell'orario vengono suddivisi in due classi distinte: vincoli rigidi (\textit{Hard Constraints}) e vincoli morbidi (\textit{Soft Constraints}). Questa distinzione è fondamentale per definire lo spazio di ammissibilità e la metrica di qualità delle soluzioni.
+
+\subsection{Hard Constraints: Definizione ed Ammissibilità}
+\label{subsec:hard_def}
+
+I vincoli rigidi rappresentano requisiti fisici, logistici o contrattuali inderogabili. Una soluzione che viola anche un solo vincolo rigido è considerata non ammissibile e non può essere applicata nella realtà. I principali vincoli rigidi includono:
+\begin{enumerate}
+    \item \textbf{Vincolo di Contemporaneità del Docente}: un docente non può insegnare in più di una classe nello stesso momento.
+    \item \textbf{Vincolo di Contemporaneità della Classe}: una classe di studenti non può seguire più di una lezione nello stesso momento.
+    \item \textbf{Vincolo di Capienza e Unicità delle Aule}: un'aula o laboratorio non può ospitare più di una lezione contemporaneamente.
+    \item \textbf{Vincolo di Completezza dell'Orario}: tutte le lezioni previste dal piano di studi devono essere effettivamente programmate all'interno dell'orario settimanale.
+\end{enumerate}
+
+\subsection{Soft Constraints: Definizione e Qualità Didattica}
+\label{subsec:soft_def}
+
+I vincoli morbidi descrivono preferenze, raccomandazioni didattiche o criteri di comfort per docenti e studenti. La loro violazione non pregiudica l'ammissibilità dell'orario, ma ne riduce la qualità complessiva. Esempi tipici di vincoli morbidi includono:
+\begin{enumerate}
+    \item \textbf{Minimizzazione delle Ore Buche}: limitazione dei periodi intermedi di inattività per i docenti e per gli studenti durante la giornata scolastica.
+    \item \textbf{Contiguità Didattica}: limitazione del numero massimo di ore consecutive di lezione per i docenti (per prevenire l'affaticamento) e distribuzione equilibrata del carico di lavoro giornaliero.
+    \item \textbf{Compattazione Giornaliera}: concentrazione delle ore di una determinata materia in blocchi contigui (es. lezioni da due ore consecutive) ed evitamento della frammentazione didattica.
+    \item \textbf{Soddisfacimento dei Desiderata dei Docenti}: concessione del giorno libero settimanale o di specifiche preferenze di orario.
+\end{enumerate}
+
+\subsection{La Funzione Obiettivo a Costi Pesati}
+\label{subsec:funzione_obiettivo_teoria}
+
+Per valutare quantitativamente la bontà di un orario ammissibile, si definisce una funzione obiettivo di minimizzazione basata sulla penalizzazione delle violazioni dei vincoli morbidi. Sia $P_i(x)$ la funzione che misura l'entità della violazione del vincolo soft $i$-esimo nella soluzione $x$, e sia $w_i \ge 0$ il peso associato a tale vincolo, che ne riflette l'importanza relativa definita dalla dirigenza scolastica. La formulazione matematica della funzione obiettivo è espressa come:
+\begin{equation}
+\min z = \sum_{i \in S} w_i \cdot P_i(x)
+\label{eq:funzione_costo_generale}
+\end{equation}
+dove $S$ è l'insieme dei vincoli morbidi considerati nel modello. I pesi $w_i$ consentono di calibrare l'equilibrio tra esigenze didattiche concorrenti, assegnando penalità elevate a violazioni considerate gravi (come il superamento del limite massimo di ore buche) e penalità inferiori a preferenze individuali.

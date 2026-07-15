@@ -1,34 +1,124 @@
-\chapter{Paradigmi Algoritmici di Risoluzione per l'HSTP}
+\chapter{Analisi Applicativa: I Vincoli dell'Istituto Tecnico e Scelta del Modello}
 \label{chap:capitolo3}
 
-In questo capitolo vengono esaminati i principali paradigmi algoritmici utilizzati in letteratura e nella pratica ingegneristica per risolvere il problema dell'High School Timetabling Problem (HSTP).
+Questo capitolo illustra l'applicazione dei modelli di ottimizzazione matematica al caso reale dell'Istituto Tecnico Saffi-Alberti di Forlì per l'anno scolastico 2026/2027. Nella prima sezione vengono dettagliati e formalizzati i vincoli specifici stabiliti dal Dirigente Scolastico. Nella seconda sezione viene analizzato il problema logistico dei docenti condivisi su più plessi, adottando la formulazione multi-plesso e i modelli di decomposizione proposti da Claudio Crobu. Infine, viene condotta una valutazione comparativa dei diversi paradigmi algoritmici per definire l'architettura del solutore ottimale per l'istituto.
 
-\section{Metodi Esatti: Programmazione Lineare Intera (ILP) e SAT-Solving}
-\label{sec:metodi_esatti}
-% Linee guida:
-% - Formulazione del problema tramite rilassamento lineare e algoritmi di Branch and Bound / Branch and Cut.
-% - Valutazione dei limiti di scalabilità dei solver esatti (es. Gurobi, CPLEX) a fronte di matrici di vincoli ad alta densità.
+\section{Analisi dei vincoli strutturali e didattici dell'A.S. 2026/2027}
+\label{sec:analisi_vincoli_saffi}
 
-\section{Constraint Programming (CP)}
-\label{sec:constraint_programming}
-% Linee guida:
-% - Il paradigma di soddisfacimento di vincoli (CSP) applicato al dominio delle lezioni.
-% - Tecniche di consistenza locale (Arc Consistency) e algoritmi di propagazione dei vincoli (es. vincolo globale Alldifferent).
+I vincoli emanati dalla dirigenza dell'Istituto Saffi-Alberti per la formulazione dell'orario si dividono in vincoli rigidi (hard constraints) e vincoli morbidi (soft constraints).
 
-\section{Metaeuristiche basate su Traiettoria (Ricerca Locale)}
-\label{sec:metaeuristiche_traiettoria}
+\subsection{Formalizzazione degli Hard Constraints}
+\label{subsec:hard_saffi}
 
-\subsection{Tabu Search (TS)}
-\label{subsec:tabu_search}
-% Linee guida: Struttura della memoria a breve termine (Tabu List), funzioni di aspirazione e definizione delle mosse nell'intorno d'orario (scambio di slot o aule).
+I vincoli di ammissibilità strutturale garantiscono la fattibilità fisica dell'orario scolastico. Essi sono descritti dalle seguenti equazioni:
 
-\subsection{Simulated Annealing (SA)}
-\label{subsec:simulated_annealing}
-% Linee guida: Algoritmo di raffreddamento termodinamico stocastico e criteri di accettazione di soluzioni peggiorative per l'evitamento di ottimi locali.
+\begin{enumerate}
+    \item \textbf{Unicità del Docente}: un docente $d \in D$ non può svolgere più di una lezione contemporaneamente nello slot temporale $t \in T$.
+    \begin{equation}
+    \sum_{c \in C} \sum_{a \in A} x_{d,c,a,t} \le 1 \quad \forall d \in D, \forall t \in T
+    \label{eq:unicita_docente}
+    \end{equation}
 
-\section{Metaeuristiche Evolutive (Algoritmi Genetici - GA)}
-\label{sec:algoritmi_genetici}
-% Linee guida:
-% - Codifica del cromosoma (rappresentazione matriciale D x T vs stringhe di assegnamento).
-% - Funzione di Fitness basata sulla minimizzazione delle penalità matematiche del Capitolo 2.
-% - Operatori genetici specializzati: Order Crossover (OX) e mutazioni per inversione volti a preservare l'ammissibilità dell'orario.
+    \item \textbf{Unicità della Classe}: una classe $c \in C$ non può seguire più di una lezione contemporaneamente nello slot temporale $t \in T$.
+    \begin{equation}
+    \sum_{d \in D} \sum_{a \in A} x_{d,c,a,t} \le 1 \quad \forall c \in C, \forall t \in T
+    \label{eq:unicita_classe}
+    \end{equation}
+
+    \item \textbf{Limitazione della Capacità delle Aule e dei Laboratori}: un'aula o laboratorio $a \in A$ non può ospitare più di una classe (o evento di lezione) contemporaneamente nello slot temporale $t \in T$.
+    \begin{equation}
+    \sum_{d \in D} \sum_{c \in C} x_{d,c,a,t} \le 1 \quad \forall a \in A, \forall t \in T
+    \label{eq:capacita_aule}
+    \end{equation}
+
+    \item \textbf{Sincronizzazione delle Compresenze (Co-teachers)}: nei casi in cui l'attività didattica in laboratorio richieda la presenza simultanea di un docente teorico $d_1$ e di un insegnante tecnico-pratico (ITP) $d_2$ per la medesima classe $c$ nell'aula speciale $a$, le rispettive variabili decisionali devono essere sincronizzate. Se indichiamo con $e = (c, a, t)$ l'evento, si impone:
+    \begin{equation}
+    x_{d_1,c,a,t} = x_{d_2,c,a,t} \quad \forall t \in T
+    \label{eq:compresenze}
+    \end{equation}
+
+    \item \textbf{Finestre di Indisponibilità Strutturale}: gli slot temporali in cui la struttura scolastica è chiusa o in cui specifici docenti sono indisponibili (es. part-time o permessi concordati) vengono esclusi imponendo:
+    \begin{equation}
+    x_{d,c,a,t} = 0 \quad \forall (d,c,a,t) \text{ tali che } t \text{ rientra nell'indisponibilità}
+    \label{eq:indisponibilita}
+    \end{equation}
+\end{enumerate}
+
+\subsection{Formalizzazione dei Soft Constraints}
+\label{subsec:soft_saffi}
+
+I vincoli morbidi descrivono preferenze didattiche e organizzative volti a massimizzare la qualità dell'orario:
+
+\begin{enumerate}
+    \item \textbf{Limitazione delle Ore Consecutive}: per prevenire l'affaticamento mentale, un docente non dovrebbe insegnare per più di 5 ore consecutive al giorno. Sia $T_g \subset T$ il sottoinsieme di slot associati alla giornata $g$. Definiamo la violazione del vincolo per il docente $d$ nel giorno $g$ come:
+    \begin{equation}
+    P_{\text{cons}}(d, g) = \max \left( 0, \max_{k} \left\{ \sum_{j=0}^{5} \sum_{c \in C} \sum_{a \in A} x_{d,c,a,t_{k+j}} - 5 \right\} \right)
+    \label{eq:ore_consecutive}
+    \end{equation}
+    dove $\{t_k, \dots, t_{k+5}\}$ rappresenta una sequenza di 6 slot consecutivi all'interno di $T_g$.
+
+    \item \textbf{Minimizzazione delle Ore Buche (Idle times)}: le ore di inattività intermedie all'interno della giornata di un docente devono essere limitate a un massimo di 3 ore settimanali per docente. Se $t_{\text{start}}(d, g)$ e $t_{\text{end}}(d, g)$ rappresentano rispettivamente il primo e l'ultimo slot di lezione del docente $d$ nel giorno $g$, il numero di ore buche in quel giorno è pari a:
+    \begin{equation}
+    \text{Buche}(d, g) = (t_{\text{end}}(d, g) - t_{\text{start}}(d, g) + 1) - \sum_{t \in T_g} \sum_{c \in C} \sum_{a \in A} x_{d,c,a,t}
+    \label{eq:ore_buche_giorno}
+    \end{equation}
+    La violazione complessiva settimanale per il docente $d$ è espressa come:
+    \begin{equation}
+    P_{\text{buche}}(d) = \max \left( 0, \sum_{g} \text{Buche}(d, g) - 3 \right)
+    \label{eq:ore_buche_settimana}
+    \end{equation}
+
+    \item \textbf{Divieto di Duplicazione Giornaliera}: le materie che prevedono solo 2 ore di lezione settimanali per classe non devono essere collocate nella stessa giornata (con l'eccezione di Scienze Motorie). Sia $m$ una disciplina e $T_{c,m}$ l'insieme delle lezioni di $m$ per la classe $c$. Per ogni giorno $g$:
+    \begin{equation}
+    \sum_{t \in T_g} \sum_{d \in D_m} \sum_{a \in A} x_{d,c,a,t} \le 1
+    \label{eq:duplicazione}
+    \end{equation}
+    dove $D_m \subset D$ è l'insieme dei docenti abilitati all'insegnamento della materia $m$.
+\end{enumerate}
+
+\section{Il problema dei docenti su più plessi (Multi-school Timetabling)}
+\label{sec:multi_school_crobu}
+
+L'Istituto Tecnico Saffi-Alberti presenta una complessa struttura logistica distribuita su più plessi scolastici nella città di Forlì. Alcuni docenti prestano servizio su più plessi o addirittura su istituti scolastici differenti (docenti condivisi o su cattedre orario esterne). Questo scenario rientra nel framework del \textit{Multi-school Timetabling Problem}.
+
+Per modellare questo problema, adottiamo la formulazione teorica proposta da Claudio Crobu (2024) \cite{crobu2024new}, che scompone il problema di scheduling scolastico italiano in due fasi connesse:
+\begin{enumerate}
+    \item \textbf{Class Teacher Assignment Problem (CTAP)}: definisce l'assegnazione preliminare dei docenti alle classi. Dal punto di vista del multi-plesso, questa fase modella la ripartizione dei docenti tra le diverse scuole. Rappresentando il problema come il partizionamento di un grafo bipartito avente da un lato l'insieme delle classi e dall'altro l'insieme dei docenti, l'obiettivo è raggruppare classi e docenti in cluster (quasi-partizioni) riducendo al minimo le connessioni esterne. Ciò consente di separare il problema di scheduling complessivo in sotto-problemi indipendenti per ciascun plesso scolastico, riducendo i tempi di calcolo.
+    \item \textbf{Teacher Profile Problem (TPP)}: assegna i periodi di insegnamento ai singoli docenti per definirne il profilo giornaliero di attività (teacher profile). Nel caso di docenti condivisi su più plessi, il TPP introduce vincoli di contiguità e blocchi orari per evitare spostamenti fisici nello stesso giorno o per garantire un tempo di percorrenza minimo ($t_{\text{travel}}$) tra le sedi.
+\end{equation}
+
+Sia $S(d, t) \in \{1, 2\}$ il plesso scolastico presso cui il docente $d$ è allocato nello slot temporale $t$. Qualora il docente debba spostarsi dal plesso 1 al plesso 2, il modello impone un vincolo di latenza temporale:
+\begin{equation}
+x_{d,c_1,a_1,t} = 1 \text{ e } S(d, t) \neq S(d, t+1) \implies x_{d,c_2,a_2,t+1} = 0
+\label{eq:spostamento_plesso}
+\end{equation}
+Questo garantisce che il docente disponga di almeno uno slot temporale intermedio per lo spostamento fisico tra i plessi dell'istituto.
+
+\section{Valutazione degli algoritmi rispetto al caso reale e proposta della soluzione ottimale}
+\label{sec:valutazione_soluzione_saffi}
+
+Per determinare l'approccio risolutivo ottimale per l'Istituto Saffi-Alberti, viene condotta un'analisi comparativa dei principali paradigmi algoritmici in relazione alle metriche prestazionali ed alla densità del grafo di conflitto dell'istituto.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|l|c|c|c|p{4cm}|}
+\hline
+\textbf{Algoritmo / Paradigma} & \textbf{Tempo di Calcolo} & \textbf{Complessità Spaziale} & \textbf{Ottimalità} & \textbf{Gestione Vincoli Saffi-Alberti} \\ \hline
+ILP / SAT-Solving              & Elevato                   & Bassa                         & Globale             & Difficile per vincoli soft non lineari \\ \hline
+Constraint Programming         & Medio-Basso               & Alta                          & Sub-ottimo          & Eccellente per vincoli rigidi e globali \\ \hline
+Tabu Search                    & Molto Basso               & Bassa                         & Locale              & Ottima per ottimizzazione soft e pesi  \\ \hline
+Simulated Annealing            & Medio                     & Bassa                         & Locale              & Buona per superamento ottimi locali    \\ \hline
+Algoritmi Genetici             & Medio-Alto                & Alta                          & Locale              & Complessa per ammissibilità cromosomica \\ \hline
+\end{tabular}
+\caption{Valutazione comparativa delle metodologie risolutive sull'istanza del Saffi-Alberti.}
+\label{tab:confronto-metodologie}
+\end{table}
+
+Alla luce di questa analisi, si propone l'adozione di una **soluzione ibrida a due fasi**, che unisce l'efficacia della programmazione a vincoli (CP) con l'efficienza della ricerca locale (Tabu Search):
+
+\begin{itemize}
+    \item \textbf{Fase 1: Generazione dell'Orario Iniziale (Constraint Programming / Heuristics)}: si utilizza un'euristica costruttiva basata sulla programmazione a vincoli o sul solutore open-source \textit{FET}. Sfruttando algoritmi ricorsivi di soddisfacimento e propagazione dei vincoli globali, questa fase genera in pochi secondi un orario di partenza che soddisfa rigorosamente tutti gli \textit{Hard Constraints} (unicità, compresenze, indisponibilità, aule).
+    \item \textbf{Fase 2: Ottimizzazione dei Vincoli Soft (Tabu Search / Local Search)}: a partire dall'orario ammissibile generato nella Fase 1, si applica un algoritmo di Tabu Search per esplorare il vicinato tramite scambi di slot temporali. Questa fase minimizza il valore della funzione obiettivo pesata (equazione \ref{eq:funzione_costo_generale}), riducendo le ore buche, controllando le ore consecutive dei docenti e ottimizzando gli spostamenti tra plessi scolastici.
+\end{itemize}
+L'approccio ibrido così configurato consente di ottenere orari scolastici stabili e bilanciati in tempi computazionali ridotti, pienamente rispondenti alle linee guida della dirigenza dell'Istituto Saffi-Alberti.

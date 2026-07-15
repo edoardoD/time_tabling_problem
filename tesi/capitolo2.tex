@@ -4,7 +4,7 @@
 La risoluzione dell'High School Timetabling Problem (HSTP) ha visto lo sviluppo di molteplici paradigmi algoritmici in letteratura. A causa della natura NP-hard del problema, la ricerca si è mossa dallo studio di metodi esatti, capaci di garantire la determinazione dell'ottimo globale a scapito di tempi di calcolo elevati, verso l'adozione di approcci euristici e metaeuristici. Questo capitolo analizza lo stato dell'arte dei modelli di risoluzione, classificandoli tra approcci esatti, Constraint Programming, metaeuristiche basate su traiettoria e di tipo evolutivo, fino a giungere ai moderni paradigmi ibridi noti come matheuristics.
 
 \section{Approcci esatti vs. Approcci euristici}
-\label{sec:approcci_esatti_euristici}
+\label{sec:approcci-esatti-euristici}
 
 I metodi di risoluzione per l'HSTP possono essere suddivisi in due macro-categorie fondamentali: gli approcci esatti e gli approcci euristici.
 
@@ -14,7 +14,7 @@ Tuttavia, i metodi esatti presentano pesanti limiti di scalabilità. Al crescere
 I \textbf{metodi euristici}, al contrario, rinunciano alla garanzia di ottimalità per focalizzarsi sulla ricerca di soluzioni di buona qualità in tempi computazionali ridotti. Essi si basano su regole empiriche o logiche di instradamento per costruire l'orario in modo incrementale (euristiche costruttive) o per migliorare una soluzione iniziale tramite modifiche locali (euristiche di miglioramento). Sebbene non garantiscano il raggiungimento del minimo globale della funzione di costo, le euristiche consentono di ottenere orari ammissibili e stabili in pochi secondi o minuti, rispondendo in modo flessibile alle esigenze delle segreterie scolastiche.
 
 \section{Constraint Programming (CP)}
-\label{sec:constraint_programming_cap2}
+\label{sec:constraint-programming-cap2}
 
 La Programmazione a Vincoli (Constraint Programming, CP) rappresenta un paradigma dichiarativo particolarmente efficace per la modellazione e la risoluzione di problemi di soddisfacimento di vincoli (Constraint Satisfaction Problem, CSP). A differenza della programmazione matematica classica, che richiede la linearizzazione di ogni relazione, la CP consente di esprimere vincoli complessi e non lineari in modo diretto.
 
@@ -27,14 +27,14 @@ Il nucleo di un solutore CP si basa su due concetti chiave:
 Nelle applicazioni reali, la CP viene spesso utilizzata come fase costruttiva preliminare per individuare rapidamente una soluzione iniziale che soddisfi tutti i vincoli rigidi (hard), da sottoporre poi a ottimizzazione.
 
 \section{Il ruolo delle Meta-euristiche}
-\label{sec:ruolo_metaeuristiche}
+\label{sec:ruolo-metaeuristiche}
 
 Le meta-euristiche sono framework algoritmici generali progettati per guidare euristiche di ricerca locale oltre gli ottimi locali, esplorando lo spazio delle soluzioni in modo intelligente. L'efficacia delle meta-euristiche applicate allo scheduling scolastico è stata ampiamente documentata a partire dal lavoro seminale di Colorni, Dorigo e Maniezzo (1998) \cite{colorni1998metaheuristics}, che ha confrontato l'impiego di diversi paradigmi su casi reali di scuole secondarie italiane.
 
 Le principali meta-euristiche utilizzate per l'HSTP si dividono in metodi basati su traiettoria e metodi basati su popolazione.
 
 \subsection{Meta-euristiche basate su Traiettoria}
-\label{subsec:metaeuristiche_traiettoria_cap2}
+\label{subsec:metaeuristiche-traiettoria-cap2}
 
 Questi algoritmi operano su una singola soluzione di partenza, spostandosi attraverso lo spazio di ricerca tramite una traiettoria definita da mosse di vicinato (ad esempio, scambiando gli slot temporali di due lezioni o riallocando un'aula).
 
@@ -44,13 +44,13 @@ Questi algoritmi operano su una singola soluzione di partenza, spostandosi attra
 \end{itemize}
 
 \subsection{Meta-euristiche Evolutive: Algoritmi Genetici}
-\label{subsec:metaeuristiche_evolutive_cap2}
+\label{subsec:metaeuristiche-evolutive-cap2}
 
 Gli Algoritmi Genetici (Genetic Algorithms, GA) si ispirano ai meccanismi della selezione naturale e della genetica biologica. Operano su una popolazione di soluzioni (chiamate cromosomi o individui) che evolvono nel corso delle generazioni.
 La struttura logica di un GA per l'HSTP comprende:
 \begin{enumerate}
     \item \textbf{Codifica del Cromosoma}: gli individui possono essere rappresentati tramite stringhe di assegnamento o matrici bidimensionali Docenti $\times$ Slot Temporali, in cui ciascuna cella indica la classe e l'aula assegnate.
-    \item \textbf{Valutazione della Fitness}: ogni cromosoma è valutato mediante una funzione di fitness, che corrisponde all'inverso della funzione obiettivo definita nell'equazione (\ref{eq:funzione_costo_generale}). Minori sono le violazioni dei vincoli (soprattutto soft), maggiore è il valore di fitness e la probabilità di sopravvivenza dell'individuo.
+    \item \textbf{Valutazione della Fitness}: ogni cromosoma è valutato mediante una funzione di fitness, che corrisponde all'inverso della funzione obiettivo definita nell'equazione (\ref{eq:funzione-costo-generale}). Minori sono le violazioni dei vincoli (soprattutto soft), maggiore è il valore di fitness e la probabilità di sopravvivenza dell'individuo.
     \item \textbf{Operatori Genetici}: il crossover (ricombinazione) unisce porzioni di due soluzioni genitore per generare una nuova prole (es. Order Crossover, OX, volto a preservare l'ammissibilità dell'assegnamento delle ore). La mutazione introduce piccole variazioni casuali per mantenere la diversità genetica della popolazione ed evitare la convergenza prematura.
 \end{enumerate}
 
@@ -64,7 +64,7 @@ Un filone di ricerca recente e di elevato interesse scientifico è rappresentato
 Il volume di Maniezzo, Boschetti e Stützle (2021) \cite{maniezzo2021matheuristics} illustra diverse modalità di integrazione e progettazione di algoritmi matheuristici, classificabili principalmente nelle seguenti metodologie:
 
 \subsection{Euristiche basate su Decomposizione}
-\label{subsec:decomposizione_math}
+\label{subsec:decomposizione-math}
 
 Seguendo il principio del \textit{divide et impera}, un problema di ottimizzazione di grandi dimensioni viene scomposto in sotto-problemi più piccoli e trattabili, che possono essere risolti all'ottimo tramite solutori esatti. Le soluzioni dei sotto-problemi vengono poi ricomposte ricorsivamente. Esempi classici includono:
 \begin{itemize}
@@ -74,11 +74,11 @@ Seguendo il principio del \textit{divide et impera}, un problema di ottimizzazio
 \end{itemize}
 
 \subsection{Corridor Method}
-\label{subsec:corridor_method}
+\label{subsec:corridor-method}
 
 Il Corridor Method (CM) \cite{maniezzo2021matheuristics} è una metodologia che utilizza un solutore esatto (come un solutore MILP) per esplorare in modo esaustivo porzioni limitate dello spazio delle soluzioni (intorni locali). La restrizione dello spazio di ricerca viene ottenuta introducendo vincoli esogeni temporanei ("corridoi") attorno a una soluzione corrente di buona qualità. Il solutore esatto ricerca la soluzione migliore all'interno di questo corridoio stretto in tempi ridotti; una volta trovata, il corridoio viene spostato attorno al nuovo punto e il processo viene ripetuto fino a convergenza.
 
 \subsection{Kernel Search}
-\label{subsec:kernel_search}
+\label{subsec:kernel-search}
 
 La Kernel Search (KS) \cite{maniezzo2021matheuristics} è un approccio euristico progettato per problemi MILP basato sull'identificazione di un sottoinsieme promettente di variabili decisionali, chiamato \textit{kernel} (nucleo). La selezione iniziale del kernel può avvenire risolvendo il rilassamento lineare del problema. Le variabili rimanenti vengono suddivise in partizioni (secchi o \textit{buckets}). L'algoritmo procede risolvendo in modo sequenziale una serie di problemi MILP di dimensioni ridotte, aggiungendo un bucket alla volta al kernel corrente e selezionando le variabili che mostrano un impatto positivo sul miglioramento della funzione obiettivo, aggiornando dinamicamente la composizione del nucleo.
